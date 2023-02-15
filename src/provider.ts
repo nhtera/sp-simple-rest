@@ -17,40 +17,38 @@ export const dataProvider = (
         filters,
         sort,
     }) => {
-        const url = `${apiUrl}/${resource}`;
+        const url = `${apiUrl}/${resource}/list`;
 
         const { current = 1, pageSize = 10 } = pagination ?? {};
 
         const queryFilters = generateFilter(filters);
 
         const query: {
-            _start?: number;
-            _end?: number;
-            _sort?: string;
-            _order?: string;
+            page?: number;
+            size?: number;
+            sort?: string;
+            sort_type?: string;
         } = hasPagination
             ? {
-                  _start: (current - 1) * pageSize,
-                  _end: current * pageSize,
+                page: current,
+                size: pageSize,
               }
             : {};
 
         const generatedSort = generateSort(sort);
         if (generatedSort) {
-            const { _sort, _order } = generatedSort;
-            query._sort = _sort.join(",");
-            query._order = _order.join(",");
+            const { sort, sort_type } = generatedSort;
+            query.sort = sort.join(",");
+            query.sort_type = sort_type.join(",");
         }
 
         const { data, headers } = await httpClient.get(
             `${url}?${stringify(query)}&${stringify(queryFilters)}`,
         );
 
-        const total = +headers["x-total-count"];
-
         return {
-            data,
-            total,
+            data: data["data"],
+            total: data["paginate"]["total_records"],
         };
     },
 
@@ -85,7 +83,7 @@ export const dataProvider = (
     },
 
     getOne: async ({ resource, id }) => {
-        const url = `${apiUrl}/${resource}/${id}`;
+        const url = `${apiUrl}/${resource}/?id=${id}`;
 
         const { data } = await httpClient.get(url);
 
@@ -116,10 +114,10 @@ export const dataProvider = (
         if (sort) {
             const generatedSort = generateSort(sort);
             if (generatedSort) {
-                const { _sort, _order } = generatedSort;
+                const { sort, sort_type } = generatedSort;
                 const sortQuery = {
-                    _sort: _sort.join(","),
-                    _order: _order.join(","),
+                    sort: sort.join(","),
+                    sort_type: sort_type.join(","),
                 };
                 requestUrl = `${requestUrl}&${stringify(sortQuery)}`;
             }

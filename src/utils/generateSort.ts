@@ -11,8 +11,8 @@ export const generateSort = (sort?: CrudSorting) => {
         });
 
         return {
-            _sort,
-            _order,
+            sort: _sort,
+            sort_type: _order,
         };
     }
 
